@@ -1,19 +1,23 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define MAX_USINAS 10 // Número máximo de usinas
 #define MAX_COOPERADOS 5 // Máximo de cooperados por usina
+#define MAX_NOME 50 // Tamanho máximo para nomes
 
 bool canAddCooperado(int currentLoad, int additionalLoad, int capacity) {
     return (currentLoad + additionalLoad) <= capacity;
 }
 
 int main() {
+    char nomesUsinas[MAX_USINAS][MAX_NOME] = {0}; // Array para armazenar os nomes das usinas
     int capacities[MAX_USINAS] = {0};  // Array para armazenar as capacidades de cada usina
     int currentLoads[MAX_USINAS] = {0}; // Array para rastrear a carga atual de cada usina
-    int cooperados[MAX_USINAS][MAX_COOPERADOS] = {0}; // Array para armazenar cooperados para cada usina
+    char nomesCooperados[MAX_USINAS][MAX_COOPERADOS][MAX_NOME] = {0}; // Array para armazenar nomes de cooperados para cada usina
+    int cooperadoValues[MAX_USINAS][MAX_COOPERADOS] = {0}; // Array para armazenar valores dos cooperados
     int numUsinas = 0;
-    
+
     int choice;
     do {
         printf("\nEscolha uma opção:\n");
@@ -27,34 +31,52 @@ int main() {
         switch (choice) {
             case 1:
                 if (numUsinas < MAX_USINAS) {
-                    printf("Insira a capacidade da usina %d: ", numUsinas + 1);
+                    printf("Insira o nome da usina %d: ", numUsinas + 1);
+                    scanf("%s", nomesUsinas[numUsinas]);
+                    printf("Insira a capacidade da usina %s: ", nomesUsinas[numUsinas]);
                     scanf("%d", &capacities[numUsinas]);
                     numUsinas++;
                 } else {
                     printf("Erro: Número máximo de usinas atingido.\n");
                 }
                 break;
-            
+
             case 2:
                 if (numUsinas == 0) {
                     printf("Erro: Nenhuma usina disponível. Adicione uma usina primeiro.\n");
                     break;
                 }
-                int usinaIndex, cooperadoValue;
-                printf("Escolha a usina para adicionar um cooperado (1 a %d): ", numUsinas);
-                scanf("%d", &usinaIndex);
-                usinaIndex--; // Ajustar para índice baseado em zero
-                
-                printf("Insira o valor do cooperado para a usina %d: ", usinaIndex + 1);
+                char usinaNome[MAX_NOME];
+                int usinaIndex = -1, cooperadoValue;
+                printf("Escolha a usina para adicionar um cooperado (nome): ");
+                scanf("%s", usinaNome);
+
+                for (int i = 0; i < numUsinas; i++) {
+                    if (strcmp(nomesUsinas[i], usinaNome) == 0) {
+                        usinaIndex = i;
+                        break;
+                    }
+                }
+
+                if (usinaIndex == -1) {
+                    printf("Erro: Usina não encontrada.\n");
+                    break;
+                }
+
+                char cooperadoNome[MAX_NOME];
+                printf("Insira o nome do cooperado para a usina %s: ", nomesUsinas[usinaIndex]);
+                scanf("%s", cooperadoNome);
+                printf("Insira o valor do cooperado %s para a usina %s: ", cooperadoNome, nomesUsinas[usinaIndex]);
                 scanf("%d", &cooperadoValue);
-                
+
                 if (canAddCooperado(currentLoads[usinaIndex], cooperadoValue, capacities[usinaIndex])) {
                     bool added = false;
                     for (int j = 0; j < MAX_COOPERADOS; j++) {
-                        if (cooperados[usinaIndex][j] == 0) {
-                            cooperados[usinaIndex][j] = cooperadoValue;
+                        if (nomesCooperados[usinaIndex][j][0] == '\0') { // Verifica se o espaço está vazio
+                            strcpy(nomesCooperados[usinaIndex][j], cooperadoNome);
+                            cooperadoValues[usinaIndex][j] = cooperadoValue;
                             currentLoads[usinaIndex] += cooperadoValue;
-                            printf("Cooperado adicionado com sucesso!\n");
+                            printf("Cooperado %s adicionado com sucesso!\n", cooperadoNome);
                             added = true;
                             break;
                         }
@@ -69,7 +91,12 @@ int main() {
 
             case 3:
                 for (int i = 0; i < numUsinas; i++) {
-                    printf("Usina %d - Capacidade: %d, Carga Atual: %d\n", i + 1, capacities[i], currentLoads[i]);
+                    printf("Usina %s - Capacidade: %d, Carga Atual: %d\n", nomesUsinas[i], capacities[i], currentLoads[i]);
+                    for (int j = 0; j < MAX_COOPERADOS; j++) {
+                        if (nomesCooperados[i][j][0] != '\0') {
+                            printf("  Cooperado %s - Valor: %d\n", nomesCooperados[i][j], cooperadoValues[i][j]);
+                        }
+                    }
                 }
                 break;
 
