@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_USINAS 10 // Número máximo de usinas
+#define MAX_COOPERADOS 5 // Máximo de cooperados por usina
+
+bool canAddCooperado(int currentLoad, int additionalLoad, int capacity) {
+    return (currentLoad + additionalLoad) <= capacity;
+}
+
+int main() {
+    int capacities[MAX_USINAS] = {0};  // Array para armazenar as capacidades de cada usina
+    int currentLoads[MAX_USINAS] = {0}; // Array para rastrear a carga atual de cada usina
+    int cooperados[MAX_USINAS][MAX_COOPERADOS] = {0}; // Array para armazenar cooperados para cada usina
+    int numUsinas = 0;
+    
+    int choice;
+    do {
+        printf("\nEscolha uma opção:\n");
+        printf("1. Adicionar usina\n");
+        printf("2. Adicionar cooperado\n");
+        printf("3. Consultar dados\n");
+        printf("4. Sair\n");
+        printf("Opção: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                if (numUsinas < MAX_USINAS) {
+                    printf("Insira a capacidade da usina %d: ", numUsinas + 1);
+                    scanf("%d", &capacities[numUsinas]);
+                    numUsinas++;
+                } else {
+                    printf("Erro: Número máximo de usinas atingido.\n");
+                }
+                break;
+            
+            case 2:
+                if (numUsinas == 0) {
+                    printf("Erro: Nenhuma usina disponível. Adicione uma usina primeiro.\n");
+                    break;
+                }
+                int usinaIndex, cooperadoValue;
+                printf("Escolha a usina para adicionar um cooperado (1 a %d): ", numUsinas);
+                scanf("%d", &usinaIndex);
+                usinaIndex--; // Ajustar para índice baseado em zero
+                
+                printf("Insira o valor do cooperado para a usina %d: ", usinaIndex + 1);
+                scanf("%d", &cooperadoValue);
+                
+                if (canAddCooperado(currentLoads[usinaIndex], cooperadoValue, capacities[usinaIndex])) {
+                    bool added = false;
+                    for (int j = 0; j < MAX_COOPERADOS; j++) {
+                        if (cooperados[usinaIndex][j] == 0) {
+                            cooperados[usinaIndex][j] = cooperadoValue;
+                            currentLoads[usinaIndex] += cooperadoValue;
+                            printf("Cooperado adicionado com sucesso!\n");
+                            added = true;
+                            break;
+                        }
+                    }
+                    if (!added) {
+                        printf("Erro: Não há espaço para mais cooperados nesta usina.\n");
+                    }
+                } else {
+                    printf("Erro: A adição deste cooperado excederia a capacidade!\n");
+                }
+                break;
+
+            case 3:
+                for (int i = 0; i < numUsinas; i++) {
+                    printf("Usina %d - Capacidade: %d, Carga Atual: %d\n", i + 1, capacities[i], currentLoads[i]);
+                }
+                break;
+
+            case 4:
+                printf("Saindo...\n");
+                break;
+
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+        }
+    } while (choice != 4);
+
+    return 0;
+}
