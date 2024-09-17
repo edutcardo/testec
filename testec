@@ -10,6 +10,94 @@ bool canAddCooperado(int currentLoad, int additionalLoad, int capacity) {
     return (currentLoad + additionalLoad) <= capacity;
 }
 
+void removeUsina(char nomesUsinas[MAX_USINAS][MAX_NOME], int capacities[MAX_USINAS], int currentLoads[MAX_USINAS], char nomesCooperados[MAX_USINAS][MAX_COOPERADOS][MAX_NOME], int cooperadoValues[MAX_USINAS][MAX_COOPERADOS], int *numUsinas) {
+    if (*numUsinas == 0) {
+        printf("Erro: Nenhuma usina disponível para remover.\n");
+        return;
+    }
+
+    char usinaNome[MAX_NOME];
+    int usinaIndex = -1;
+    printf("Insira o nome da usina a ser removida: ");
+    scanf("%s", usinaNome);
+
+    for (int i = 0; i < *numUsinas; i++) {
+        if (strcmp(nomesUsinas[i], usinaNome) == 0) {
+            usinaIndex = i;
+            break;
+        }
+    }
+
+    if (usinaIndex == -1) {
+        printf("Erro: Usina não encontrada.\n");
+        return;
+    }
+
+    // Remover usina e reorganizar arrays
+    for (int i = usinaIndex; i < *numUsinas - 1; i++) {
+        strcpy(nomesUsinas[i], nomesUsinas[i + 1]);
+        capacities[i] = capacities[i + 1];
+        currentLoads[i] = currentLoads[i + 1];
+        for (int j = 0; j < MAX_COOPERADOS; j++) {
+            strcpy(nomesCooperados[i][j], nomesCooperados[i + 1][j]);
+            cooperadoValues[i][j] = cooperadoValues[i + 1][j];
+        }
+    }
+    (*numUsinas)--;
+    printf("Usina %s removida com sucesso!\n", usinaNome);
+}
+
+void removeCooperado(char nomesCooperados[MAX_USINAS][MAX_COOPERADOS][MAX_NOME], int cooperadoValues[MAX_USINAS][MAX_COOPERADOS], int currentLoads[MAX_USINAS], int numUsinas, char nomesUsinas[MAX_USINAS][MAX_NOME]) {
+    if (numUsinas == 0) {
+        printf("Erro: Nenhuma usina disponível.\n");
+        return;
+    }
+
+    char usinaNome[MAX_NOME];
+    int usinaIndex = -1;
+    printf("Escolha a usina para remover um cooperado (nome): ");
+    scanf("%s", usinaNome);
+
+    for (int i = 0; i < numUsinas; i++) {
+        if (strcmp(nomesUsinas[i], usinaNome) == 0) {
+            usinaIndex = i;
+            break;
+        }
+    }
+
+    if (usinaIndex == -1) {
+        printf("Erro: Usina não encontrada.\n");
+        return;
+    }
+
+    char cooperadoNome[MAX_NOME];
+    int cooperadoIndex = -1;
+    printf("Insira o nome do cooperado a ser removido: ");
+    scanf("%s", cooperadoNome);
+
+    for (int j = 0; j < MAX_COOPERADOS; j++) {
+        if (strcmp(nomesCooperados[usinaIndex][j], cooperadoNome) == 0) {
+            cooperadoIndex = j;
+            break;
+        }
+    }
+
+    if (cooperadoIndex == -1) {
+        printf("Erro: Cooperado não encontrado.\n");
+        return;
+    }
+
+    // Remover cooperado e reorganizar array
+    currentLoads[usinaIndex] -= cooperadoValues[usinaIndex][cooperadoIndex];
+    for (int j = cooperadoIndex; j < MAX_COOPERADOS - 1; j++) {
+        strcpy(nomesCooperados[usinaIndex][j], nomesCooperados[usinaIndex][j + 1]);
+        cooperadoValues[usinaIndex][j] = cooperadoValues[usinaIndex][j + 1];
+    }
+    nomesCooperados[usinaIndex][MAX_COOPERADOS - 1][0] = '\0';
+    cooperadoValues[usinaIndex][MAX_COOPERADOS - 1] = 0;
+    printf("Cooperado %s removido com sucesso!\n", cooperadoNome);
+}
+
 int main() {
     char nomesUsinas[MAX_USINAS][MAX_NOME] = {0}; // Array para armazenar os nomes das usinas
     int capacities[MAX_USINAS] = {0};  // Array para armazenar as capacidades de cada usina
@@ -23,8 +111,10 @@ int main() {
         printf("\nEscolha uma opção:\n");
         printf("1. Adicionar usina\n");
         printf("2. Adicionar cooperado\n");
-        printf("3. Consultar dados\n");
-        printf("4. Sair\n");
+        printf("3. Remover usina\n");
+        printf("4. Remover cooperado\n");
+        printf("5. Consultar dados\n");
+        printf("6. Sair\n");
         printf("Opção: ");
         scanf("%d", &choice);
 
@@ -90,6 +180,14 @@ int main() {
                 break;
 
             case 3:
+                removeUsina(nomesUsinas, capacities, currentLoads, nomesCooperados, cooperadoValues, &numUsinas);
+                break;
+
+            case 4:
+                removeCooperado(nomesCooperados, cooperadoValues, currentLoads, numUsinas, nomesUsinas);
+                break;
+
+            case 5:
                 for (int i = 0; i < numUsinas; i++) {
                     printf("Usina %s - Capacidade: %d, Carga Atual: %d\n", nomesUsinas[i], capacities[i], currentLoads[i]);
                     for (int j = 0; j < MAX_COOPERADOS; j++) {
@@ -100,14 +198,14 @@ int main() {
                 }
                 break;
 
-            case 4:
+            case 6:
                 printf("Saindo...\n");
                 break;
 
             default:
                 printf("Opção inválida. Tente novamente.\n");
         }
-    } while (choice != 4);
+    } while (choice != 6);
 
     return 0;
 }
